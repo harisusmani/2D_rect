@@ -2108,3 +2108,24 @@
 	<float.h>
 	"lsd.h"
 
+1398181700 source:c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\icon.rc
+
+1398181700 source:c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\lsd.c
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<limits.h>
+	<float.h>
+	"lsd.h"
+
+1398181700 c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\lsd.h
+
+1398181700 source:c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\main.cpp
+	"ofMain.h"
+	"testApp.h"
+
+1398181700 c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\testapp.h
+	"ofMain.h"
+	"ofxCv.h"
+	"lsd.h"
+

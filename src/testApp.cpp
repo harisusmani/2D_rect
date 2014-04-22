@@ -130,7 +130,7 @@ void testApp::setup(){
         L[3][j] = lsd_out->values[(line_lengths[j].second)+3];
     }
 
-    /*
+
     cout << "Testing Values in L, C1: " << L[0][0] << " " << L[1][0] << " " << L[2][0] << " " << L[3][0];
     cout << "Testing Values in L, C2: " << L[0][1] << " " << L[1][1] << " " << L[2][1] << " " << L[3][1];
         first.set(L[0][0],L[1][0],0.0);
@@ -145,7 +145,7 @@ void testApp::setup(){
         mesh.addVertex(first);
         mesh.addColor(ofFloatColor(0.0, 1.0, 0.0));
         mesh.addVertex(second);
-        mesh.addColor(ofFloatColor(0.0, 1.0, 0.0)); */
+        mesh.addColor(ofFloatColor(0.0, 1.0, 0.0));
 
 }
 
