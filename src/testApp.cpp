@@ -110,7 +110,7 @@ void testApp::setup(){
         mesh.addVertex(second);
         mesh.addColor(ofFloatColor(1.0, 0.0, 0.0));
         //Lines Added, will be drawn //
-    }
+       }
     sort(line_lengths.begin(),line_lengths.end());
     reverse(line_lengths.begin(), line_lengths.end());
 
@@ -126,10 +126,10 @@ void testApp::setup(){
         L[i].resize(no_of_lines);
     }
     for (int j=0; j<no_of_lines; j++){
-        L[0][j] = lsd_out->values[line_lengths[j].second];
-        L[1][j] = lsd_out->values[(line_lengths[j].second)+1];
-        L[2][j] = lsd_out->values[(line_lengths[j].second)+2];
-        L[3][j] = lsd_out->values[(line_lengths[j].second)+3];
+        L[0][j] = lsd_out->values[line_lengths[j].second]-center.x; //Move Origin to the Principle Point too
+        L[1][j] = lsd_out->values[(line_lengths[j].second)+1]-center.y;
+        L[2][j] = lsd_out->values[(line_lengths[j].second)+2]-center.x;
+        L[3][j] = lsd_out->values[(line_lengths[j].second)+3]-center.y;
     }
 
     /*
@@ -156,6 +156,12 @@ void testApp::setup(){
     //LINE EXTENSION
 
     //Finding Adjacent Lines
+    bool adjflag=0;
+    vector<int> ar; //To hold Adjacent Row Values
+    vector<int> ac; //To hold Adjacent Column Values
+
+    if (adjflag)
+    {
     double athreshadj=10;
 
     vector<vector<bool> > adj; //Line x Line Inf Matrix Initialization, adj
@@ -186,11 +192,82 @@ void testApp::setup(){
                    if (adj[i][j])
                    {
                       cout << "i=" << i <<"  j=" << j << "\n";
+                      ar.push_back(i);
+                      ac.push_back(j);
+
+                      //TEST
+                      first.set(L[0][i],L[1][i],0.0);
+                      second.set(L[2][i],L[3][i],0.0);
+                      mesh.addVertex(first);
+                      mesh.addColor(ofFloatColor(0.0, 1.0, 1.0));
+                      mesh.addVertex(second);
+                      mesh.addColor(ofFloatColor(0.0, 1.0, 1.0));
+
+                      first.set(L[0][j],L[1][j],0.0);
+                      second.set(L[2][j],L[3][j],0.0);
+                      mesh.addVertex(first);
+                      mesh.addColor(ofFloatColor(0.0, 1.0, 0.0));
+                      mesh.addVertex(second);
+                      mesh.addColor(ofFloatColor(0.0, 1.0, 0.0));
+                      //------//
                    }
                }
             }
         }
     }
+    }
+    else
+    {
+    for (int i = 0; i < no_of_lines; ++i){ // nC2 Pairs
+        for (int j = i+1; j < no_of_lines; ++j){ //Everyline infront
+            ar.push_back(i);
+            ac.push_back(j);
+            }
+        }
+    }
+    cout << "No. of Pairs: "<< ac.size() << "\n";
+    //Adjacent Matrix ENDS
+
+
+    //Convert Line Segments to vector format for Rectification //
+    vector<vector<double> > L_vec; //Line's Vector Form
+    L_vec.resize(3); //Height
+    for (int i = 0; i < 3; ++i){
+        L_vec[i].resize(no_of_lines);
+    }
+
+    Mat A(3,3,CV_32F);
+    Mat s, u, vt;
+    A.at<float>(0,2)=1;
+    A.at<float>(1,2)=1;
+    A.at<float>(2,0)=0;
+    A.at<float>(2,1)=0;
+    A.at<float>(2,2)=0;
+    for (int i = 0; i < no_of_lines; ++i){
+            A.at<float>(0,0)=L[0][i];
+            A.at<float>(0,1)=L[1][i];
+            A.at<float>(1,0)=L[2][i];
+            A.at<float>(1,1)=L[3][i];
+            SVD::compute(A, s, u, vt);  //YY=U*S*V'
+            vt=vt.t();
+            vt.col(0)=vt.col(0)*-1;
+
+            L_vec[0][i]=vt.at<float>(0,2);
+            L_vec[1][i]=vt.at<float>(1,2);
+            L_vec[2][i]=vt.at<float>(2,2);
+    }
+
+
+    /*
+    SVD::compute(A, s, u, vt);  //YY=U*S*V'
+    vt=vt.t();
+    vt.col(0)=vt.col(0)*-1;
+
+    cout << "S: " << s << "\n";
+    cout << "U: " << u << "\n";
+    cout << "V: " << vt << "\n";
+    //Transpose and - the first column of V */
+
 
     /*double test=1.0/0.0;
     cout << test << "\n";
