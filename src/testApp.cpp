@@ -82,7 +82,7 @@ void testApp::setup(){
     //SORTING WHICH RETURNS INDEX TOO!
     //http://stackoverflow.com/questions/1577475/c-sorting-and-keeping-track-of-indexes
     vector<mypair> line_lengths;
-    double distance;
+    //double distance;
     double sqd_distance;
 
     mesh.setMode(OF_PRIMITIVE_LINES);
@@ -114,11 +114,13 @@ void testApp::setup(){
     sort(line_lengths.begin(),line_lengths.end());
     reverse(line_lengths.begin(), line_lengths.end());
 
-    cout << line_lengths[0].first << " " << line_lengths[0].second << " " << line_lengths[1].first << " " << line_lengths[1].second;
+    cout << line_lengths[0].first << " " << line_lengths[0].second << " " << line_lengths[1].first << " " << line_lengths[1].second << "\n";
 
-    unsigned int maxlines=500;
-    unsigned int no_of_lines=max(lsd_out->size,maxlines);
+    unsigned int maxlines=700;
+    //unsigned int max2=floor(lsd_out->size*0.7);
+    unsigned int no_of_lines=min(lsd_out->size,maxlines);
     //Store these Lines pairs in a Matrix, in descending order of Distance
+    cout << "Number of Lines: " << no_of_lines << "\n";
     L.resize(4); //Height
     for (int i = 0; i < 4; ++i){
         L[i].resize(no_of_lines);
@@ -130,7 +132,7 @@ void testApp::setup(){
         L[3][j] = lsd_out->values[(line_lengths[j].second)+3];
     }
 
-
+    /*
     cout << "Testing Values in L, C1: " << L[0][0] << " " << L[1][0] << " " << L[2][0] << " " << L[3][0];
     cout << "Testing Values in L, C2: " << L[0][1] << " " << L[1][1] << " " << L[2][1] << " " << L[3][1];
         first.set(L[0][0],L[1][0],0.0);
@@ -145,8 +147,54 @@ void testApp::setup(){
         mesh.addVertex(first);
         mesh.addColor(ofFloatColor(0.0, 1.0, 0.0));
         mesh.addVertex(second);
-        mesh.addColor(ofFloatColor(0.0, 1.0, 0.0));
+        mesh.addColor(ofFloatColor(0.0, 1.0, 0.0)); */
 
+    //GAP FILLING
+    double athresh=2;
+    double dthresh=1;  //dthresh times the length of the two segments will be allowed as gap to be filled
+
+    //LINE EXTENSION
+
+    //Finding Adjacent Lines
+    double athreshadj=10;
+
+    vector<vector<bool> > adj; //Line x Line Inf Matrix Initialization, adj
+    adj.resize(no_of_lines); //Height
+    for (int i = 0; i < no_of_lines; ++i){
+        adj[i].resize(no_of_lines);
+        for (int j = 0; j < no_of_lines; ++j){
+            //adj[i][j]=1.0/0.0;
+            adj[i][j]=0;
+        }
+    }
+
+    ofVec2f v1,v2,x;
+    athreshadj=abs(cos((athreshadj*PI)/180.0));
+    for (int i = 0; i < no_of_lines; ++i){
+        for (int j = i+1; j < no_of_lines; ++j){ //Everyline infront
+            v1.set(L[0][i]-L[2][i],L[1][i]-L[3][i]);
+            v2.set(L[0][j]-L[2][j],L[1][j]-L[3][j]);
+            v1.normalize();
+            v2.normalize();
+            if (abs(v1.dot(v2))<athreshadj) //acos(v1.dot(v2)) //So Angle is greater!
+            {
+               x=solveLinearSys(L[0][i]-L[2][i],-L[0][j]+L[2][j],L[1][i]-L[3][i],-L[1][j]+L[3][j],-L[2][i]+L[2][j],-L[3][i]+L[3][j]);
+               if (not isinf(x.x) and not isinf(x.y))
+               {
+                   adj[i][j]=(x.x>=-DBL_EPSILON) && (x.x<=1+DBL_EPSILON) && (x.y>=-DBL_EPSILON) && (x.y<=1+DBL_EPSILON);
+                   adj[j][i]=adj[i][j] || adj[j][i];
+                   if (adj[i][j])
+                   {
+                      cout << "i=" << i <<"  j=" << j << "\n";
+                   }
+               }
+            }
+        }
+    }
+
+    /*double test=1.0/0.0;
+    cout << test << "\n";
+    cout << isinf(test); */
 }
 
 //--------------------------------------------------------------
@@ -205,4 +253,11 @@ void testApp::gotMessage(ofMessage msg){
 //--------------------------------------------------------------
 void testApp::dragEvent(ofDragInfo dragInfo){
 
+}
+
+ofVec2f testApp::solveLinearSys(double a11,double a12,double a21,double a22,double b1,double b2){
+    ofVec2f out;
+    double det=(a11*a22)-(a12*a21);
+    out.set((a22*b1-a12*b2)/det,(-a21*b1+a11*b2)/det);
+    return out;
 }

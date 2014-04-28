@@ -2,9 +2,12 @@
 
 #include "ofMain.h"
 #include "ofxCv.h"
+
 extern "C" {
 #include "lsd.h"
 }
+
+#define PI 3.14159265
 
 class testApp : public ofBaseApp{
 
@@ -22,6 +25,8 @@ class testApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
+
+		ofVec2f solveLinearSys(double a11,double a12,double a21,double a22,double b1,double b2);
 
 		ofImage my_image;
 		ofImage my_img_gray;

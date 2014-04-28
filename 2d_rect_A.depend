@@ -2124,8 +2124,11 @@
 	"ofMain.h"
 	"testApp.h"
 
-1398181700 c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\testapp.h
+1398700837 c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\testapp.h
 	"ofMain.h"
 	"ofxCv.h"
 	"lsd.h"
+
+1398702356 source:c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\testapp.cpp
+	"testApp.h"
 
