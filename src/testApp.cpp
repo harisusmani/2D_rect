@@ -12,7 +12,7 @@ bool comparator ( const mypair& l, const mypair& r){
 //--------------------------------------------------------------
 void testApp::setup(){
     //ofSetVerticalSync(true);
-	my_image.loadImage("dc_1.jpg");
+	my_image.loadImage("laptop_scan.jpg");
 
 	//Import EXIF Data, Find a Good Library//
 	focal_length=22;
@@ -153,10 +153,12 @@ void testApp::setup(){
     double athresh=2;
     double dthresh=1;  //dthresh times the length of the two segments will be allowed as gap to be filled
 
+
+
     //LINE EXTENSION
 
     //Finding Adjacent Lines
-    bool adjflag=0;
+    bool adjflag=1;
     std::vector<int> ar; //To hold Adjacent Row Values
     std::vector<int> ac; //To hold Adjacent Column Values
 
@@ -226,6 +228,8 @@ void testApp::setup(){
         }
     }
     cout << "No. of Pairs: "<< ac.size() << "\n";
+    //cin >> adjflag;
+
     //Adjacent Matrix ENDS
 
     //Convert Line Segments to vector format for Rectification //
@@ -269,7 +273,7 @@ void testApp::setup(){
     column_vector modelX;
     std::vector<int> arIn; //To hold Adjacent Row Values
     std::vector<int> acIn;
-    double thresh=0.01;
+    double thresh=0.0001; //0.0000000001;//0.01;
 
     std::vector<int> Best_arIn; //To hold Adjacent Row Values
     std::vector<int> Best_acIn;
@@ -278,6 +282,9 @@ void testApp::setup(){
 
     while (trialcount<maxTrials)
     {
+        arIn.resize(0);
+        acIn.resize(0);
+
         r_ind1=floor(ofRandom(ac.size()));
         r_ind2=floor(ofRandom(ac.size()));
         r1=ar[r_ind1];
@@ -313,6 +320,8 @@ void testApp::setup(){
     //column_vector solution= fitFunc4Lines(L_vec, r1, r2, r3, r4, f);
 
     column_vector solution=Best_modelX;
+
+    //column_vector solution=fitFuncNLines(Best_modelX, L_vec, Best_arIn, Best_acIn, f);
     cout << "cost_function solution:\n" << solution << endl;
 
 
@@ -320,19 +329,19 @@ void testApp::setup(){
     ofMatrix4x4 R=ofMatrix4x4::newRotationMatrix(solution(0)*180.0/PI, ofVec3f(-1, 0, 0), solution(1)*180.0/PI, ofVec3f(0, -1, 0), 0, ofVec3f(0, 0, -1));
     double m[3][3] = {{R(0,0), R(0,1), R(0,2)}, {R(1,0), R(1,1), R(1,2)}, {R(2,0), R(2,1), R(2,2)}};
     cv::Mat R_mat = cv::Mat(3, 3, CV_64F, m);
-    cout << "R_mat" << R_mat <<endl;
+    //cout << "R_mat" << R_mat <<endl;
 
     cv::Mat K_mat = (cv::Mat_<double>(3,3)<< f,0.0,0.0,0.0,f,0.0,0.0,0.0,1.0);
-    cout << "K" << K_mat <<endl;
+    //cout << "K" << K_mat <<endl;
     cv::Mat K_c= K_mat.clone();
     K_c=K_c.inv();
-    cout << "Kinv" << K_c <<endl;
+    //cout << "Kinv" << K_c <<endl;
 
     cv::Mat C = (cv::Mat_<double>(3,3)<< 1,0,-center.x,0,1,-center.y,0,0,1);
-    cout << "C" << C <<endl;
+    //cout << "C" << C <<endl;
     cv::Mat H=K_mat*R_mat*K_c*C;
 
-    cout << "H before Transform" << H << endl;
+    //cout << "H before Transform" << H << endl;
 
     //Calclating Resultant Translation and Scale
     std::vector<Point2f> Ref_c;
@@ -349,7 +358,38 @@ void testApp::setup(){
     Ref_c[3].y=double(my_image.height);
 
     perspectiveTransform(Ref_c, Ref_c_out, H);
-    cout << endl << "Ref Out: " << Ref_c_out << endl;
+    //cout << endl << "Ref Out: " << Ref_c_out << endl;
+
+    cout << "Ref Out New: " << Ref_c_out << endl;
+
+    //Scalling:
+    double scale_fac=abs((max(Ref_c_out[1].x,Ref_c_out[2].x)-min(Ref_c_out[0].x,Ref_c_out[3].x))/my_image.width); //Based on Length
+    cout << "Scale Factor: " << scale_fac << endl;
+
+    Ref_c_out[0].x=Ref_c_out[0].x/scale_fac;
+    Ref_c_out[0].y=Ref_c_out[0].y/scale_fac;
+    Ref_c_out[1].x=Ref_c_out[1].x/scale_fac;
+    Ref_c_out[1].y=Ref_c_out[1].y/scale_fac;
+    Ref_c_out[2].x=Ref_c_out[2].x/scale_fac;
+    Ref_c_out[2].y=Ref_c_out[2].y/scale_fac;
+    Ref_c_out[3].x=Ref_c_out[3].x/scale_fac;
+    Ref_c_out[3].y=Ref_c_out[3].y/scale_fac;
+
+    /*Point2f NCenter;
+    NCenter.x=(max(Ref_c_out[1].x,Ref_c_out[2].x)-min(Ref_c_out[0].x,Ref_c_out[3].x))/2.0;
+    NCenter.y=(max(Ref_c_out[2].y,Ref_c_out[3].y)-min(Ref_c_out[0].y,Ref_c_out[1].y))/2.0;
+    cout << "New Center: " << NCenter << endl;
+    NCenter.x-=500;
+    NCenter.y-=500;
+
+    Ref_c_out[0].x=Ref_c_out[0].x-NCenter.x;
+    Ref_c_out[0].y=Ref_c_out[0].y-NCenter.y;
+    Ref_c_out[1].x=Ref_c_out[1].x-NCenter.x; //OR Find new Center and bring to Center of Canvas!
+    Ref_c_out[1].y=Ref_c_out[1].y-NCenter.y;
+    Ref_c_out[2].x=Ref_c_out[2].x-NCenter.x;
+    Ref_c_out[2].y=Ref_c_out[2].y-NCenter.y;
+    Ref_c_out[3].x=Ref_c_out[3].x-NCenter.x;
+    Ref_c_out[3].y=Ref_c_out[3].y-NCenter.y;*/
 
     Ref_c_out[1].x=Ref_c_out[1].x-Ref_c_out[0].x; //OR Find new Center and bring to Center of Canvas!
     Ref_c_out[1].y=Ref_c_out[1].y-Ref_c_out[0].y;
@@ -440,7 +480,7 @@ ofVec2f testApp::solveLinearSys(double a11,double a12,double a21,double a22,doub
 
 testApp::column_vector testApp::fitFunc4Lines(std::vector<std::vector<double> > L_vec,unsigned int r1,unsigned int r2,unsigned int r3,unsigned int r4, float f){
     column_vector starting_point(2);
-    starting_point = ofRandom(PI/2),ofRandom(PI/2);
+    starting_point = ofRandom(PI/4),ofRandom(PI/4); // OR 0, 0
         find_min_bobyqa(cost_function(L_vec, r1, r2, r3, r4, f),
                         starting_point,
                         5,    // number of interpolation points
@@ -491,12 +531,11 @@ void testApp::distFunc(std::vector<std::vector<double> >L_vec,testApp::column_ve
     cv::Mat Lp_T=Lp.clone();
     Lp_T=Lp_T.t();
     cv::Mat C=Lp_T*Lp;
-    C=abs(C);
-    thresh=sqrt(thresh);
+    multiply(C, C, C, 1.0);
 
     for (int i=0; i<L_vec[0].size(); i++)
     {
-        for (int j=0; i<L_vec[0].size(); i++)
+        for (int j=0; j<L_vec[0].size(); j++)
         {
             if (C.at<double>(i,j)<=thresh)
             {
@@ -505,4 +544,19 @@ void testApp::distFunc(std::vector<std::vector<double> >L_vec,testApp::column_ve
             }
         }
     }
+}
+
+testApp::column_vector testApp::fitFuncNLines(testApp::column_vector init_x, std::vector<std::vector<double> > L_vec, std::vector<int> Best_arIn, std::vector<int> Best_acIn, float f){
+        column_vector starting_point(2);
+        starting_point = init_x;
+        find_min_bobyqa(cost_functionNLines(L_vec, Best_arIn, Best_acIn, f),
+                        starting_point,
+                        5,    // number of interpolation points
+                        dlib::uniform_matrix<double>(2,1, 0),  // lower bound constraint
+                        dlib::uniform_matrix<double>(2,1, PI/2),   // upper bound constraint
+                        PI/10,    // initial trust region radius
+                        1e-100,  // stopping trust region radius
+                        2000    // max number of objective function evaluations
+        );
+    return starting_point;
 }
