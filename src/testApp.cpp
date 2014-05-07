@@ -31,7 +31,7 @@ void testApp::setup(){
 
     float f=focal_length*(float)max(my_image.width,my_image.height)/sensor_width;
     K.set(f,0.0,0.0,0.0,f,0.0,0.0,0.0,1.0);
-    center.set(float(my_image.width)/2,float(my_image.height)/2);
+    center.set(double(my_image.width)/2.0,double(my_image.height)/2.0);
     cout << K;
 
     my_img_gray=my_image;
@@ -81,7 +81,7 @@ void testApp::setup(){
 
     //SORTING WHICH RETURNS INDEX TOO!
     //http://stackoverflow.com/questions/1577475/c-sorting-and-keeping-track-of-indexes
-    vector<mypair> line_lengths;
+    std::vector<mypair> line_lengths;
     //double distance;
     double sqd_distance;
 
@@ -125,15 +125,15 @@ void testApp::setup(){
     for (int i = 0; i < 4; ++i){
         L[i].resize(no_of_lines);
     }
+
     for (int j=0; j<no_of_lines; j++){
         L[0][j] = lsd_out->values[line_lengths[j].second]-center.x; //Move Origin to the Principle Point too
-        L[1][j] = lsd_out->values[(line_lengths[j].second)+1]-center.y;
+        L[1][j] = lsd_out->values[(line_lengths[j].second)+1]-center.y;  //...Required for Vector Form of Lines
         L[2][j] = lsd_out->values[(line_lengths[j].second)+2]-center.x;
         L[3][j] = lsd_out->values[(line_lengths[j].second)+3]-center.y;
     }
 
-    /*
-    cout << "Testing Values in L, C1: " << L[0][0] << " " << L[1][0] << " " << L[2][0] << " " << L[3][0];
+    /*cout << "Testing Values in L, C1: " << L[0][0] << " " << L[1][0] << " " << L[2][0] << " " << L[3][0];
     cout << "Testing Values in L, C2: " << L[0][1] << " " << L[1][1] << " " << L[2][1] << " " << L[3][1];
         first.set(L[0][0],L[1][0],0.0);
         second.set(L[2][0],L[3][0],0.0);
@@ -147,7 +147,7 @@ void testApp::setup(){
         mesh.addVertex(first);
         mesh.addColor(ofFloatColor(0.0, 1.0, 0.0));
         mesh.addVertex(second);
-        mesh.addColor(ofFloatColor(0.0, 1.0, 0.0)); */
+        mesh.addColor(ofFloatColor(0.0, 1.0, 0.0));*/
 
     //GAP FILLING
     double athresh=2;
@@ -157,14 +157,14 @@ void testApp::setup(){
 
     //Finding Adjacent Lines
     bool adjflag=0;
-    vector<int> ar; //To hold Adjacent Row Values
-    vector<int> ac; //To hold Adjacent Column Values
+    std::vector<int> ar; //To hold Adjacent Row Values
+    std::vector<int> ac; //To hold Adjacent Column Values
 
     if (adjflag)
     {
     double athreshadj=10;
 
-    vector<vector<bool> > adj; //Line x Line Inf Matrix Initialization, adj
+    std::vector<std::vector<bool> > adj; //Line x Line Inf Matrix Initialization, adj
     adj.resize(no_of_lines); //Height
     for (int i = 0; i < no_of_lines; ++i){
         adj[i].resize(no_of_lines);
@@ -228,9 +228,9 @@ void testApp::setup(){
     cout << "No. of Pairs: "<< ac.size() << "\n";
     //Adjacent Matrix ENDS
 
-
     //Convert Line Segments to vector format for Rectification //
-    vector<vector<double> > L_vec; //Line's Vector Form
+            //Tested, works as expected!//
+    std::vector<std::vector<double> > L_vec; //Line's Vector Form
     L_vec.resize(3); //Height
     for (int i = 0; i < 3; ++i){
         L_vec[i].resize(no_of_lines);
@@ -257,21 +257,120 @@ void testApp::setup(){
             L_vec[2][i]=vt.at<float>(2,2);
     }
 
+    //RANSAC//
 
-    /*
-    SVD::compute(A, s, u, vt);  //YY=U*S*V'
-    vt=vt.t();
-    vt.col(0)=vt.col(0)*-1;
+    //Fitting Function
+    //Distance Function
+    //Fitting Function with Adjacency Matrix (Inliers)
+    unsigned int maxTrials=200;
+    unsigned int trialcount=0;
+    unsigned int r1, r2, r3, r4; //Pick the 4 lines I like to test. //0,1,4,3 WORK!!
+    unsigned int r_ind1, r_ind2;
+    column_vector modelX;
+    std::vector<int> arIn; //To hold Adjacent Row Values
+    std::vector<int> acIn;
+    double thresh=0.01;
 
-    cout << "S: " << s << "\n";
-    cout << "U: " << u << "\n";
-    cout << "V: " << vt << "\n";
-    //Transpose and - the first column of V */
+    std::vector<int> Best_arIn; //To hold Adjacent Row Values
+    std::vector<int> Best_acIn;
+    unsigned int Bestscore=0; //Number of Inliers
+    column_vector Best_modelX;
+
+    while (trialcount<maxTrials)
+    {
+        r_ind1=floor(ofRandom(ac.size()));
+        r_ind2=floor(ofRandom(ac.size()));
+        r1=ar[r_ind1];
+        r2=ar[r_ind2];
+        r3=ac[r_ind1];
+        r4=ac[r_ind2];
+
+        modelX=fitFunc4Lines(L_vec, r1, r2, r3, r4, f);
+        distFunc(L_vec,modelX,f,thresh,arIn,acIn);
+
+        if (Bestscore<arIn.size())
+        {
+            Bestscore=arIn.size();
+            Best_arIn=arIn;
+            Best_acIn=acIn;
+            Best_modelX=modelX;
+            cout << "No. of Inliers: "<< Bestscore<<endl;
+        }
+
+        trialcount++;
+    }
 
 
-    /*double test=1.0/0.0;
-    cout << test << "\n";
-    cout << isinf(test); */
+    //Skipping RANSAC, Testing Solver First
+    //Pick two good lines and solve for Homography, Apply Homography to Image
+                //Pick the 4 lines I like to test. //0,1,4,3 WORK!!
+                /*r1=0;
+                r2=1;
+                r3=4;
+                r4=3;
+                Best_modelX=fitFunc4Lines(L_vec, r1, r2, r3, r4, f);*/
+
+    //column_vector solution= fitFunc4Lines(L_vec, r1, r2, r3, r4, f);
+
+    column_vector solution=Best_modelX;
+    cout << "cost_function solution:\n" << solution << endl;
+
+
+    //APPLYING HOMOGRAPHY for this SOLUTION//
+    ofMatrix4x4 R=ofMatrix4x4::newRotationMatrix(solution(0)*180.0/PI, ofVec3f(-1, 0, 0), solution(1)*180.0/PI, ofVec3f(0, -1, 0), 0, ofVec3f(0, 0, -1));
+    double m[3][3] = {{R(0,0), R(0,1), R(0,2)}, {R(1,0), R(1,1), R(1,2)}, {R(2,0), R(2,1), R(2,2)}};
+    cv::Mat R_mat = cv::Mat(3, 3, CV_64F, m);
+    cout << "R_mat" << R_mat <<endl;
+
+    cv::Mat K_mat = (cv::Mat_<double>(3,3)<< f,0.0,0.0,0.0,f,0.0,0.0,0.0,1.0);
+    cout << "K" << K_mat <<endl;
+    cv::Mat K_c= K_mat.clone();
+    K_c=K_c.inv();
+    cout << "Kinv" << K_c <<endl;
+
+    cv::Mat C = (cv::Mat_<double>(3,3)<< 1,0,-center.x,0,1,-center.y,0,0,1);
+    cout << "C" << C <<endl;
+    cv::Mat H=K_mat*R_mat*K_c*C;
+
+    cout << "H before Transform" << H << endl;
+
+    //Calclating Resultant Translation and Scale
+    std::vector<Point2f> Ref_c;
+    std::vector<Point2f> Ref_c_out;
+    Ref_c.resize(4);
+    Ref_c_out.resize(4);
+    Ref_c[0].x=0;
+    Ref_c[0].y=0;
+    Ref_c[1].x=double(my_image.width);
+    Ref_c[1].y=0;
+    Ref_c[2].x=double(my_image.width);
+    Ref_c[2].y=double(my_image.height);
+    Ref_c[3].x=0;
+    Ref_c[3].y=double(my_image.height);
+
+    perspectiveTransform(Ref_c, Ref_c_out, H);
+    cout << endl << "Ref Out: " << Ref_c_out << endl;
+
+    Ref_c_out[1].x=Ref_c_out[1].x-Ref_c_out[0].x; //OR Find new Center and bring to Center of Canvas!
+    Ref_c_out[1].y=Ref_c_out[1].y-Ref_c_out[0].y;
+    Ref_c_out[2].x=Ref_c_out[2].x-Ref_c_out[0].x;
+    Ref_c_out[2].y=Ref_c_out[2].y-Ref_c_out[0].y;
+    Ref_c_out[3].x=Ref_c_out[3].x-Ref_c_out[0].x;
+    Ref_c_out[3].y=Ref_c_out[3].y-Ref_c_out[0].y;
+    Ref_c_out[0].x=Ref_c_out[0].x-Ref_c_out[0].x;
+    Ref_c_out[0].y=Ref_c_out[0].y-Ref_c_out[0].y;
+    cout << "Ref Out New: " << Ref_c_out << endl;
+
+    H = getPerspectiveTransform( Ref_c, Ref_c_out ); //For the Translated/Scalled Image
+
+    //Applying Homography//
+    Mat src_img(cv:: Size (my_image.width, my_image.height),CV_8UC3,my_image.getPixels()); //OF to OpenCV
+    cv::Mat dst_img;
+	dst_img.create(src_img.size(), src_img.type());
+
+	cv::warpPerspective(src_img, dst_img, H, src_img.size(), cv::INTER_LINEAR);
+    //OpenCV to OF
+    my_image.setFromPixels((unsigned char *) IplImage(dst_img). imageData,dst_img.size().width, dst_img.size().height,OF_IMAGE_COLOR);
 }
 
 //--------------------------------------------------------------
@@ -282,8 +381,8 @@ void testApp::update(){
 //--------------------------------------------------------------
 void testApp::draw(){
     ofSetColor(255);
-	//my_image.draw(0, 0);
-    my_img_gray.draw(0, 0);
+	my_image.draw(0, 0);
+    //my_img_gray.draw(0, 0);
 	mesh.draw();
 }
 
@@ -337,4 +436,73 @@ ofVec2f testApp::solveLinearSys(double a11,double a12,double a21,double a22,doub
     double det=(a11*a22)-(a12*a21);
     out.set((a22*b1-a12*b2)/det,(-a21*b1+a11*b2)/det);
     return out;
+}
+
+testApp::column_vector testApp::fitFunc4Lines(std::vector<std::vector<double> > L_vec,unsigned int r1,unsigned int r2,unsigned int r3,unsigned int r4, float f){
+    column_vector starting_point(2);
+    starting_point = ofRandom(PI/2),ofRandom(PI/2);
+        find_min_bobyqa(cost_function(L_vec, r1, r2, r3, r4, f),
+                        starting_point,
+                        5,    // number of interpolation points
+                        dlib::uniform_matrix<double>(2,1, 0),  // lower bound constraint
+                        dlib::uniform_matrix<double>(2,1, PI/2),   // upper bound constraint
+                        PI/10,    // initial trust region radius
+                        1e-100,  // stopping trust region radius
+                        2000    // max number of objective function evaluations
+        );
+    return starting_point;
+}
+
+void testApp::distFunc(std::vector<std::vector<double> >L_vec,testApp::column_vector modelX,float f,double thresh,std::vector<int> & arIn,std::vector<int> & acIn){
+    //MAKE ROTATION MATRIX
+    ofMatrix4x4 R=ofMatrix4x4::newRotationMatrix(modelX(0)*180.0/PI, ofVec3f(-1, 0, 0), modelX(1)*180.0/PI, ofVec3f(0, -1, 0), 0, ofVec3f(0, 0, -1));
+    double m[3][3] = {{R(0,0), R(0,1), R(0,2)}, {R(1,0), R(1,1), R(1,2)}, {R(2,0), R(2,1), R(2,2)}};
+    cv::Mat R_mat = cv::Mat(3, 3, CV_64F, m);
+
+    cv::Mat K_mat = (cv::Mat_<double>(3,3)<< f,0.0,0.0,0.0,f,0.0,0.0,0.0,1.0);
+
+    cv::Mat K_c=K_mat.clone();
+    K_c=K_c.inv();
+    R_mat=R_mat.t();
+    cv::Mat Hinv=K_mat*R_mat*K_c;
+
+    double L_vec_D[3][L_vec[0].size()];
+    for (int i = 0; i < L_vec[0].size(); ++i){
+        L_vec_D[0][i]=L_vec[0][i];
+        L_vec_D[1][i]=L_vec[1][i];
+        L_vec_D[2][i]=L_vec[2][i];
+    }
+
+    cv::Mat L_vec_M=cv::Mat(3, L_vec[0].size(), CV_64F, L_vec_D);
+
+    Hinv=Hinv.t();
+    cv::Mat Lp=Hinv*L_vec_M;
+    Lp.resize(2);
+
+    double mag;
+    for (int i=0; i<L_vec[0].size(); i++)
+    {
+        mag=(Lp.at<double>(0,i)*Lp.at<double>(0,i))+(Lp.at<double>(1,i)*Lp.at<double>(1,i));
+        mag=sqrt(mag);
+        Lp.at<double>(0,i)=Lp.at<double>(0,i)/mag;
+        Lp.at<double>(1,i)=Lp.at<double>(1,i)/mag;
+    }
+
+    cv::Mat Lp_T=Lp.clone();
+    Lp_T=Lp_T.t();
+    cv::Mat C=Lp_T*Lp;
+    C=abs(C);
+    thresh=sqrt(thresh);
+
+    for (int i=0; i<L_vec[0].size(); i++)
+    {
+        for (int j=0; i<L_vec[0].size(); i++)
+        {
+            if (C.at<double>(i,j)<=thresh)
+            {
+                arIn.push_back(i);
+                acIn.push_back(j);
+            }
+        }
+    }
 }
