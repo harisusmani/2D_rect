@@ -12,12 +12,15 @@ bool comparator ( const mypair& l, const mypair& r){
 //--------------------------------------------------------------
 void testApp::setup(){
     //ofSetVerticalSync(true);
-	my_image.loadImage("laptop_scan.jpg");
+	my_image.loadImage("dc_1.jpg");
 
 	//Import EXIF Data, Find a Good Library//
 	focal_length=22;
-	cam_model="Canon EOS M";
+	//cam_model="Canon EOS M";
 	sensor_width=22.3;
+
+	//focal_length=4; //Nexus 5
+	//sensor_width=4.59;
 	//EXIF Data Completed//
 
     resize_image=1; //To Enable or Disable Resize
@@ -127,35 +130,82 @@ void testApp::setup(){
     }
 
     for (int j=0; j<no_of_lines; j++){
-        L[0][j] = lsd_out->values[line_lengths[j].second]-center.x; //Move Origin to the Principle Point too
-        L[1][j] = lsd_out->values[(line_lengths[j].second)+1]-center.y;  //...Required for Vector Form of Lines
-        L[2][j] = lsd_out->values[(line_lengths[j].second)+2]-center.x;
-        L[3][j] = lsd_out->values[(line_lengths[j].second)+3]-center.y;
+        L[0][j] = lsd_out->values[line_lengths[j].second];//-center.x; //Move Origin to the Principle Point too
+        L[1][j] = lsd_out->values[(line_lengths[j].second)+1];//-center.y;  //...Required for Vector Form of Lines
+        L[2][j] = lsd_out->values[(line_lengths[j].second)+2];//-center.x;
+        L[3][j] = lsd_out->values[(line_lengths[j].second)+3];//-center.y;
     }
 
-    /*cout << "Testing Values in L, C1: " << L[0][0] << " " << L[1][0] << " " << L[2][0] << " " << L[3][0];
-    cout << "Testing Values in L, C2: " << L[0][1] << " " << L[1][1] << " " << L[2][1] << " " << L[3][1];
-        first.set(L[0][0],L[1][0],0.0);
-        second.set(L[2][0],L[3][0],0.0);
-        mesh.addVertex(first);
-        mesh.addColor(ofFloatColor(0.0, 1.0, 0.0));
-        mesh.addVertex(second);
-        mesh.addColor(ofFloatColor(0.0, 1.0, 0.0));
-
-        first.set(L[0][1],L[1][1],0.0);
-        second.set(L[2][1],L[3][1],0.0);
-        mesh.addVertex(first);
-        mesh.addColor(ofFloatColor(0.0, 1.0, 0.0));
-        mesh.addVertex(second);
-        mesh.addColor(ofFloatColor(0.0, 1.0, 0.0));*/
-
-    //GAP FILLING
-    double athresh=2;
-    double dthresh=1;  //dthresh times the length of the two segments will be allowed as gap to be filled
-
-
+    //GAP FILLING (Skipped)
 
     //LINE EXTENSION
+    double extension_fac=.15; //For one side of the line
+    double line_length;
+    double line_gradient;
+    double rise_angle;
+    double delta_x;
+    double delta_y;
+    for (int j=0; j<no_of_lines; j++){
+        x1=L[0][j];
+        y1=L[1][j];
+        x2=L[2][j];
+        y2=L[3][j];
+        line_length=sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+        line_gradient=(y2-y1)/(x2-x1);
+        rise_angle=atan(abs(line_gradient));
+        delta_x=cos(rise_angle)*(line_length*extension_fac);
+        delta_y=sin(rise_angle)*(line_length*extension_fac);
+        cout << delta_x << "  " << delta_y<< endl;
+        if (line_gradient<0)
+        {
+            if (x1>x2)
+            {
+                L[0][j]+=delta_x;
+                L[1][j]-=delta_y;
+                L[2][j]-=delta_x;
+                L[3][j]+=delta_y;
+            }
+            else
+            {
+                L[2][j]+=delta_x;
+                L[3][j]-=delta_y;
+                L[0][j]-=delta_x;
+                L[1][j]+=delta_y;
+            }
+        }
+        else
+        {
+            if (x1>x2)
+            {
+                L[0][j]+=delta_x;
+                L[1][j]+=delta_y;
+                L[2][j]-=delta_x;
+                L[3][j]-=delta_y;
+            }
+            else
+            {
+                L[2][j]+=delta_x;
+                L[3][j]+=delta_y;
+                L[0][j]-=delta_x;
+                L[1][j]-=delta_y;
+            }
+        }
+        x1=L[0][j];
+        y1=L[1][j];
+        x2=L[2][j];
+        y2=L[3][j];
+        //To Draw as Primitive Lines //
+        first.set(x2,y2,0.0);
+        second.set(x1,y1,0.0);
+        mesh.addVertex(first);
+        mesh.addColor(ofFloatColor(0.0, 1.0, 0.0));
+        mesh.addVertex(second);
+        mesh.addColor(ofFloatColor(0.0, 1.0, 0.0));
+        L[2][j]-=center.x;
+        L[3][j]-=center.y;
+        L[0][j]-=center.x;
+        L[1][j]-=center.y;
+    }
 
     //Finding Adjacent Lines
     bool adjflag=1;
@@ -198,19 +248,19 @@ void testApp::setup(){
                       ac.push_back(j);
 
                       //TEST
-                      first.set(L[0][i],L[1][i],0.0);
+                     /* first.set(L[0][i],L[1][i],0.0);
                       second.set(L[2][i],L[3][i],0.0);
                       mesh.addVertex(first);
-                      mesh.addColor(ofFloatColor(0.0, 1.0, 1.0));
+                      mesh.addColor(ofFloatColor(0.0, 0.0, 1.0));
                       mesh.addVertex(second);
-                      mesh.addColor(ofFloatColor(0.0, 1.0, 1.0));
+                      mesh.addColor(ofFloatColor(0.0, 0.0, 1.0));
 
                       first.set(L[0][j],L[1][j],0.0);
                       second.set(L[2][j],L[3][j],0.0);
                       mesh.addVertex(first);
-                      mesh.addColor(ofFloatColor(0.0, 1.0, 0.0));
+                      mesh.addColor(ofFloatColor(0.0, 0.0, 1.0));
                       mesh.addVertex(second);
-                      mesh.addColor(ofFloatColor(0.0, 1.0, 0.0));
+                      mesh.addColor(ofFloatColor(0.0, 0.0, 1.0));*/
                       //------//
                    }
                }
@@ -228,12 +278,10 @@ void testApp::setup(){
         }
     }
     cout << "No. of Pairs: "<< ac.size() << "\n";
-    //cin >> adjflag;
 
     //Adjacent Matrix ENDS
 
     //Convert Line Segments to vector format for Rectification //
-            //Tested, works as expected!//
     std::vector<std::vector<double> > L_vec; //Line's Vector Form
     L_vec.resize(3); //Height
     for (int i = 0; i < 3; ++i){
@@ -262,22 +310,21 @@ void testApp::setup(){
     }
 
     //RANSAC//
-
-    //Fitting Function
-    //Distance Function
-    //Fitting Function with Adjacency Matrix (Inliers)
-    unsigned int maxTrials=200;
+    //int PairsC2=(ac.size()-1)*ac.size()/2;
+    unsigned int maxTrials=400; //min(PairsC2*5,200);
+    cout << "RANSAC: No. of Trials = " << maxTrials << endl;
     unsigned int trialcount=0;
     unsigned int r1, r2, r3, r4; //Pick the 4 lines I like to test. //0,1,4,3 WORK!!
     unsigned int r_ind1, r_ind2;
     column_vector modelX;
     std::vector<int> arIn; //To hold Adjacent Row Values
     std::vector<int> acIn;
-    double thresh=0.0001; //0.0000000001;//0.01;
+    double thresh=0.001;//0.001; //0.00000001;//0.01;
 
     std::vector<int> Best_arIn; //To hold Adjacent Row Values
     std::vector<int> Best_acIn;
     unsigned int Bestscore=0; //Number of Inliers
+    unsigned int score=0;
     column_vector Best_modelX;
 
     while (trialcount<maxTrials)
@@ -292,12 +339,14 @@ void testApp::setup(){
         r3=ac[r_ind1];
         r4=ac[r_ind2];
 
-        modelX=fitFunc4Lines(L_vec, r1, r2, r3, r4, f);
+        modelX=fitFunc4Lines(L_vec, r1, r2, r3, r4, f); //Fitting Function
         distFunc(L_vec,modelX,f,thresh,arIn,acIn);
+        score=arIn.size();
+        //score=distFunc2(L_vec,modelX,f,thresh,arIn,acIn, ar, ac); //Distance Function
 
-        if (Bestscore<arIn.size())
+        if (Bestscore<score)
         {
-            Bestscore=arIn.size();
+            Bestscore=score;
             Best_arIn=arIn;
             Best_acIn=acIn;
             Best_modelX=modelX;
@@ -306,7 +355,7 @@ void testApp::setup(){
 
         trialcount++;
     }
-
+    cout << endl << "RANSAC Done." << endl;
 
     //Skipping RANSAC, Testing Solver First
     //Pick two good lines and solve for Homography, Apply Homography to Image
@@ -321,7 +370,9 @@ void testApp::setup(){
 
     column_vector solution=Best_modelX;
 
-    //column_vector solution=fitFuncNLines(Best_modelX, L_vec, Best_arIn, Best_acIn, f);
+    cout << "cost_function solution:\n" << Best_modelX << endl;
+
+    //column_vector solution=fitFuncNLines(Best_modelX, L_vec, Best_arIn, Best_acIn, f); //Fitting Function with Adjacency Matrix (Inliers)
     cout << "cost_function solution:\n" << solution << endl;
 
 
@@ -544,6 +595,74 @@ void testApp::distFunc(std::vector<std::vector<double> >L_vec,testApp::column_ve
             }
         }
     }
+}
+
+unsigned int testApp::distFunc2(std::vector<std::vector<double> >L_vec,testApp::column_vector modelX,float f,double thresh,std::vector<int> & arIn,std::vector<int> & acIn, std::vector<int> ar, std::vector<int> ac){
+    //MAKE ROTATION MATRIX
+    ofMatrix4x4 R=ofMatrix4x4::newRotationMatrix(modelX(0)*180.0/PI, ofVec3f(-1, 0, 0), modelX(1)*180.0/PI, ofVec3f(0, -1, 0), 0, ofVec3f(0, 0, -1));
+    double m[3][3] = {{R(0,0), R(0,1), R(0,2)}, {R(1,0), R(1,1), R(1,2)}, {R(2,0), R(2,1), R(2,2)}};
+    cv::Mat R_mat = cv::Mat(3, 3, CV_64F, m);
+
+    cv::Mat K_mat = (cv::Mat_<double>(3,3)<< f,0.0,0.0,0.0,f,0.0,0.0,0.0,1.0);
+
+    cv::Mat K_c=K_mat.clone();
+    K_c=K_c.inv();
+    R_mat=R_mat.t();
+    cv::Mat Hinv=K_mat*R_mat*K_c;
+
+    double L_vec_D[3][L_vec[0].size()];
+    for (int i = 0; i < L_vec[0].size(); ++i){
+        L_vec_D[0][i]=L_vec[0][i];
+        L_vec_D[1][i]=L_vec[1][i];
+        L_vec_D[2][i]=L_vec[2][i];
+    }
+
+    cv::Mat L_vec_M=cv::Mat(3, L_vec[0].size(), CV_64F, L_vec_D);
+
+    Hinv=Hinv.t();
+    cv::Mat Lp=Hinv*L_vec_M;
+    Lp.resize(2);
+
+    double mag;
+    for (int i=0; i<L_vec[0].size(); i++)
+    {
+        mag=(Lp.at<double>(0,i)*Lp.at<double>(0,i))+(Lp.at<double>(1,i)*Lp.at<double>(1,i));
+        mag=sqrt(mag);
+        Lp.at<double>(0,i)=Lp.at<double>(0,i)/mag;
+        Lp.at<double>(1,i)=Lp.at<double>(1,i)/mag;
+    }
+
+    cv::Mat Lp_T=Lp.clone();
+    Lp_T=Lp_T.t();
+    cv::Mat C=Lp_T*Lp;
+    multiply(C, C, C, 1.0);
+
+    unsigned int score=0;
+
+    for (int i=0; i<L_vec[0].size(); i++)
+    {
+        for (int j=0; j<L_vec[0].size(); j++)
+        {
+            if (C.at<double>(i,j)<=thresh)
+            {
+                score+=1;
+            }
+        }
+    }
+
+    int i,j;
+    for (int x=0; x<ar.size(); x++)
+    {
+        i=ar[x];
+        j=ac[x];
+            if (C.at<double>(i,j)<=thresh)
+            {
+                arIn.push_back(i);
+                acIn.push_back(j);
+            }
+    }
+
+    return score;
 }
 
 testApp::column_vector testApp::fitFuncNLines(testApp::column_vector init_x, std::vector<std::vector<double> > L_vec, std::vector<int> Best_arIn, std::vector<int> Best_acIn, float f){

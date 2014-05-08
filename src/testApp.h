@@ -51,6 +51,7 @@ class testApp : public ofBaseApp{
 
         column_vector fitFunc4Lines(std::vector<std::vector<double> > L_vec,unsigned int r1,unsigned int r2,unsigned int r3,unsigned int r4, float f);
         void distFunc(std::vector<std::vector<double> >L_vec,testApp::column_vector modelX,float f,double thresh,std::vector<int> & arIn,std::vector<int> & acIn);
+        unsigned int distFunc2(std::vector<std::vector<double> >L_vec,testApp::column_vector modelX,float f,double thresh,std::vector<int> & arIn,std::vector<int> & acIn, std::vector<int> ar, std::vector<int> ac);
         column_vector fitFuncNLines(testApp::column_vector init_x, std::vector<std::vector<double> > L_vec, std::vector<int> Best_arIn, std::vector<int> Best_acIn, float f);
 };
 
@@ -160,18 +161,13 @@ public:
         cv::Mat IC = cv::Mat::eye(L_vec[0].size(), L_vec[0].size(), CV_64F)*1;
         C=C-IC;
 
-        cout << "FINE TILL HERE!" << endl;
-
         double total_cost=0;
 
         for (int i=0; i<arIn.size(); i++)
         {
-            for (int j=0; j<acIn.size(); j++)
+            if (not isnan(C.at<double>(arIn[i],acIn[i])))
             {
-                if (not isnan(C.at<double>(arIn[i],acIn[j])))
-                {
-                total_cost=total_cost + C.at<double>(arIn[i],acIn[j]);
-                }
+            total_cost=total_cost + C.at<double>(arIn[i],acIn[i]);
             }
         }
         cout << "Total Cost: " << total_cost << endl;

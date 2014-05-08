@@ -2124,14 +2124,14 @@
 	"ofMain.h"
 	"testApp.h"
 
-1399489261 c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\testapp.h
+1399502001 c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\testapp.h
 	"ofMain.h"
 	"ofxCv.h"
 	"ofxCvImage.h"
 	"lsd.h"
 	"dlib/optimization.h"
 
-1399499347 source:c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\testapp.cpp
+1399513411 source:c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\testapp.cpp
 	"testApp.h"
 
 1397084918 source:c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\bin\data\dlib\all\source.cpp
