@@ -1,34 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="release" />
-	<File name="..\..\..\addons\ofxOpenCv\libs\opencv\include\opencv2\core\mat.hpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="64143" topLine="1997" />
-		</Cursor>
-	</File>
-	<File name="src\lsd.h" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2052" topLine="34" />
-		</Cursor>
-	</File>
-	<File name="src\testApp.h" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="5630" topLine="157" />
-		</Cursor>
-	</File>
-	<File name="..\..\..\addons\ofxOpenCv\libs\opencv\include\opencv2\flann\general.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1061" topLine="15" />
-		</Cursor>
-	</File>
-	<File name="..\..\..\addons\ofxOpenCv\libs\opencv\include\opencv2\flann\defines.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2633" topLine="22" />
-		</Cursor>
-	</File>
 	<File name="src\lsd.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="50752" topLine="1037" />
+		</Cursor>
+	</File>
+	<File name="src\testApp.cpp" open="1" top="1" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="490" topLine="0" />
 		</Cursor>
 	</File>
 	<File name="..\..\..\addons\ofxOpenCv\libs\opencv\include\opencv2\core\core.hpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -36,14 +16,34 @@
 			<Cursor1 position="3286" topLine="83" />
 		</Cursor>
 	</File>
-	<File name="src\testApp.cpp" open="1" top="1" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="..\..\..\addons\ofxOpenCv\libs\opencv\include\opencv2\flann\general.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="195" topLine="0" />
+			<Cursor1 position="1061" topLine="15" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\addons\ofxOpenCv\libs\opencv\include\opencv2\core\mat.hpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="64143" topLine="1997" />
+		</Cursor>
+	</File>
+	<File name="..\..\..\addons\ofxOpenCv\libs\opencv\include\opencv2\flann\defines.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2633" topLine="22" />
+		</Cursor>
+	</File>
+	<File name="src\lsd.h" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2052" topLine="34" />
 		</Cursor>
 	</File>
 	<File name="src\main.cpp" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="399" topLine="0" />
+			<Cursor1 position="248" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="src\testApp.h" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="55" topLine="0" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>
