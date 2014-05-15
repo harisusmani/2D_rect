@@ -2120,18 +2120,18 @@
 
 1398181700 c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\lsd.h
 
-1398181700 source:c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\main.cpp
+1399949389 source:c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\main.cpp
 	"ofMain.h"
 	"testApp.h"
 
-1399502001 c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\testapp.h
+1399520700 c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\testapp.h
 	"ofMain.h"
 	"ofxCv.h"
 	"ofxCvImage.h"
 	"lsd.h"
 	"dlib/optimization.h"
 
-1399513411 source:c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\testapp.cpp
+1399938012 source:c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\src\testapp.cpp
 	"testApp.h"
 
 1397084918 source:c:\of_v0.8.0_win_cb_release\apps\myapps\2d_rect\bin\data\dlib\all\source.cpp

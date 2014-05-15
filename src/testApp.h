@@ -31,9 +31,11 @@ class testApp : public ofBaseApp{
 
 		ofImage my_image;
 		ofImage my_img_gray;
+		ofImage output_img;
+		string filename;
+		bool talk;
 		//EXIF
 		float focal_length;
-		string cam_model;
 		float sensor_width;
 
 		bool resize_image;
@@ -170,7 +172,7 @@ public:
             total_cost=total_cost + C.at<double>(arIn[i],acIn[i]);
             }
         }
-        cout << "Total Cost: " << total_cost << endl;
+        // cout << "Total Cost: " << total_cost << endl;
         return(total_cost);
     }
 

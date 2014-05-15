@@ -11,16 +11,27 @@ bool comparator ( const mypair& l, const mypair& r){
 
 //--------------------------------------------------------------
 void testApp::setup(){
-    //ofSetVerticalSync(true);
-	my_image.loadImage("dc_1.jpg");
+    talk=0; //Troubleshooting
+
+    //filename="flickr/window.jpg";
+    cout << "Filename: ";
+	cin >> filename;
+	my_image.loadImage(filename);
+	filename.insert(filename.size()-4,"_ofxOUT");
 
 	//Import EXIF Data, Find a Good Library//
-	focal_length=22;
-	//cam_model="Canon EOS M";
-	sensor_width=22.3;
+	//focal_length=22; //Canon EOS M";
+	//sensor_width=22.3;
 
 	//focal_length=4; //Nexus 5
 	//sensor_width=4.59;
+    cout << endl << "Focal: ";
+    cin >> focal_length;
+
+    cout << endl << "Sensor Width: ";
+    cin >> sensor_width;
+    //focal_length=18; //Seasick
+	//sensor_width=23.6;
 	//EXIF Data Completed//
 
     resize_image=1; //To Enable or Disable Resize
@@ -35,7 +46,7 @@ void testApp::setup(){
     float f=focal_length*(float)max(my_image.width,my_image.height)/sensor_width;
     K.set(f,0.0,0.0,0.0,f,0.0,0.0,0.0,1.0);
     center.set(double(my_image.width)/2.0,double(my_image.height)/2.0);
-    cout << K;
+    if (talk) cout << K;
 
     my_img_gray=my_image;
     my_img_gray.setImageType(OF_IMAGE_GRAYSCALE);
@@ -75,7 +86,7 @@ void testApp::setup(){
     lsd_out = LineSegmentDetection( dub_image, scale, sigma_scale, quant, ang_th, eps,
                                density_th, n_bins, max_grad, NULL );
     cout << "LSD has done it's thing!\n";
-    cout << "Number of Lines: "<< lsd_out->size << "Number of Dimensions: " << lsd_out->dim << "\n";
+    if (talk) cout << "Number of Lines: "<< lsd_out->size << "Number of Dimensions: " << lsd_out->dim << "\n";
 
     if (verbose)
     {
@@ -117,7 +128,7 @@ void testApp::setup(){
     sort(line_lengths.begin(),line_lengths.end());
     reverse(line_lengths.begin(), line_lengths.end());
 
-    cout << line_lengths[0].first << " " << line_lengths[0].second << " " << line_lengths[1].first << " " << line_lengths[1].second << "\n";
+    if (talk) cout << line_lengths[0].first << " " << line_lengths[0].second << " " << line_lengths[1].first << " " << line_lengths[1].second << "\n";
 
     unsigned int maxlines=700;
     //unsigned int max2=floor(lsd_out->size*0.7);
@@ -155,7 +166,6 @@ void testApp::setup(){
         rise_angle=atan(abs(line_gradient));
         delta_x=cos(rise_angle)*(line_length*extension_fac);
         delta_y=sin(rise_angle)*(line_length*extension_fac);
-        cout << delta_x << "  " << delta_y<< endl;
         if (line_gradient<0)
         {
             if (x1>x2)
@@ -243,7 +253,7 @@ void testApp::setup(){
                    adj[j][i]=adj[i][j] || adj[j][i];
                    if (adj[i][j])
                    {
-                      cout << "i=" << i <<"  j=" << j << "\n";
+                      //cout << "i=" << i <<"  j=" << j << "\n";
                       ar.push_back(i);
                       ac.push_back(j);
 
@@ -350,12 +360,13 @@ void testApp::setup(){
             Best_arIn=arIn;
             Best_acIn=acIn;
             Best_modelX=modelX;
-            cout << "No. of Inliers: "<< Bestscore<<endl;
+            if (talk) cout << "No. of Inliers: "<< Bestscore<<endl;
         }
 
         trialcount++;
     }
-    cout << endl << "RANSAC Done." << endl;
+    cout << "RANSAC Done." << endl;
+    cout << "No. of Inliers: "<< Bestscore<<endl;
 
     //Skipping RANSAC, Testing Solver First
     //Pick two good lines and solve for Homography, Apply Homography to Image
@@ -370,7 +381,7 @@ void testApp::setup(){
 
     column_vector solution=Best_modelX;
 
-    cout << "cost_function solution:\n" << Best_modelX << endl;
+    if (talk) cout << "cost_function solution:\n" << Best_modelX << endl;
 
     //column_vector solution=fitFuncNLines(Best_modelX, L_vec, Best_arIn, Best_acIn, f); //Fitting Function with Adjacency Matrix (Inliers)
     cout << "cost_function solution:\n" << solution << endl;
@@ -411,11 +422,11 @@ void testApp::setup(){
     perspectiveTransform(Ref_c, Ref_c_out, H);
     //cout << endl << "Ref Out: " << Ref_c_out << endl;
 
-    cout << "Ref Out New: " << Ref_c_out << endl;
+    if (talk) cout << "Ref Out New: " << Ref_c_out << endl;
 
     //Scalling:
     double scale_fac=abs((max(Ref_c_out[1].x,Ref_c_out[2].x)-min(Ref_c_out[0].x,Ref_c_out[3].x))/my_image.width); //Based on Length
-    cout << "Scale Factor: " << scale_fac << endl;
+    if (talk) cout << "Scale Factor: " << scale_fac << endl;
 
     Ref_c_out[0].x=Ref_c_out[0].x/scale_fac;
     Ref_c_out[0].y=Ref_c_out[0].y/scale_fac;
@@ -450,7 +461,7 @@ void testApp::setup(){
     Ref_c_out[3].y=Ref_c_out[3].y-Ref_c_out[0].y;
     Ref_c_out[0].x=Ref_c_out[0].x-Ref_c_out[0].x;
     Ref_c_out[0].y=Ref_c_out[0].y-Ref_c_out[0].y;
-    cout << "Ref Out New: " << Ref_c_out << endl;
+    if (talk) (cout << "Ref Out New: " << Ref_c_out << endl);
 
     H = getPerspectiveTransform( Ref_c, Ref_c_out ); //For the Translated/Scalled Image
 
@@ -472,14 +483,14 @@ void testApp::update(){
 //--------------------------------------------------------------
 void testApp::draw(){
     ofSetColor(255);
-	my_image.draw(0, 0);
-    //my_img_gray.draw(0, 0);
-	mesh.draw();
+	if (talk) mesh.draw();
+    my_image.draw(0, 0);
 }
 
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
-
+    output_img.grabScreen(0,0,my_image.width,my_image.height);
+    output_img.saveImage(filename);
 }
 
 //--------------------------------------------------------------
